@@ -1,4 +1,4 @@
-const ajax = (function() {
+const ajax = (function () {
 
     const Request = XMLHttpRequest;
 
@@ -28,28 +28,28 @@ const ajax = (function() {
         }
 
         return data;
-    } 
+    }
 
     function formDataToUrl(formData) {
         let url = "";
         for (let key of formData.keys()) {
             let encodedKey = encodeURIComponent(key);
             let values = formData.getAll(key);
-            if (values.length == 1) 
+            if (values.length == 1)
                 url += `&${encodedKey}=${encodeURIComponent(values[0])}`;
-            else 
+            else
                 for (let i = 0; i < values.length; ++i)
                     url += `&${encodedKey}[${i}]=${encodeURIComponent(values[i])}`;
         }
         return url.substring(1);
     }
 
-    function createRequest(url, formData, type) { 
-        return new Promise(function(resolve) {
+    function createRequest(url, formData, type) {
+        return new Promise(function (resolve) {
             type = (type || "GET").toUpperCase();
             let req = new Request();
-    
-            req.addEventListener("readystatechange", function() {
+
+            req.addEventListener("readystatechange", function () {
                 if (req.readyState == 4) {
                     let result = {
                         response: req.response,
@@ -61,18 +61,24 @@ const ajax = (function() {
                         statusText: req.statusText
                     };
                     Object.defineProperty(result, "responseObject", {
-                        get: function() {
-                            if ((this.responseType || "text") === "text" || this.responseType === "json")
-                                try {
-                                    return JSON.parse(this.response);
-                                } catch { }
-                            return null;
+                        get: function () {
+                            if (this._responseObject === undefined) {
+                                if ((this.responseType || "text") === "text" || this.responseType === "json")
+                                    try {
+                                        this._responseObject = JSON.parse(this.response);
+                                    } catch {
+                                        this._responseObject = null;
+                                    }
+                                else
+                                    this._responseObject = null;
+                            }
+                            return this._responseObject;
                         }
                     });
                     resolve(result);
                 }
             })
-    
+
             if (type === "GET" || type === "HEAD") {
                 let query = formDataToUrl(formData);
                 req.open(type, url + (query ? "?" : "") + query);
@@ -89,7 +95,7 @@ const ajax = (function() {
         return isNaN(status) || status >= 400 || status < 100;
     }
 
-    return function() {
+    return function () {
         let {
             url,
             method,
@@ -111,11 +117,11 @@ const ajax = (function() {
         let request = createRequest(url, formData, method || type || "GET");
 
         if (statusCode)
-            request = request.then(response => {               
-                let func = statusCode[Number(response.status)] || statusCode[response.status+""];
+            request = request.then(response => {
+                let func = statusCode[Number(response.status)] || statusCode[response.status + ""];
                 if (func)
                     func(response);
-                return response; 
+                return response;
             });
 
         request = request.then(response => {
@@ -132,5 +138,5 @@ const ajax = (function() {
 
         return request;
     };
-    
+
 })();
