@@ -60,7 +60,7 @@ const ajax = (function () {
                         status: req.status,
                         statusText: req.statusText
                     };
-                    Object.defineProperty(result, "responseObject", {
+                    Object.defineProperty(result, "value", {
                         get: function () {
                             if (this._responseObject === undefined) {
                                 if ((this.responseType || "text") === "text" || this.responseType === "json")
@@ -95,6 +95,30 @@ const ajax = (function () {
         return isNaN(status) || status >= 400 || status < 100;
     }
 
+    function createOptions(args) {
+        if (typeof args[0] === "string")
+            return createOptionsFromString(args[0], args[1]);
+        else if (args[0] instanceof HTMLFormElement)
+            return createOptionsFromForm(args[0], args[1]);
+        return args[0] || {};
+    }
+
+    function createOptionsFromString(url, options) {
+        return {
+            url: url,
+            ...(options || {})
+        };
+    }
+
+    function createOptionsFromForm(form, options) {
+        return {
+            url: form.action,
+            method: form.method,
+            data: form,
+            ...(options || {})
+        };
+    }
+
     return function () {
         let {
             url,
@@ -105,10 +129,7 @@ const ajax = (function () {
             success,
             error,
             statusCode
-        } = (typeof arguments[0] === "string" ? arguments[1] : arguments[0] || arguments[1]) || {};
-
-        if (typeof arguments[0] === "string")
-            url = arguments[0];
+        } = createOptions([...arguments]);
 
         if (!url)
             throw new Error("URL wasn't specified");
@@ -118,23 +139,17 @@ const ajax = (function () {
 
         if (statusCode)
             request = request.then(response => {
-                let func = statusCode[Number(response.status)] || statusCode[response.status + ""];
+                let func = statusCode[response.status];
                 if (func)
                     func(response);
                 return response;
             });
 
-        request = request.then(response => {
-            if (!response || isErrorStatus(response.status))
-                throw response;
-            return response;
-        });
-
         if (success)
-            request = request.then(response => { success(response); return response; })
+            request = request.then(response => { if (!isErrorStatus(response.status)) success(response); return response; })
 
         if (error)
-            request = request.catch(response => { error(response); return response; })
+            request = request.then(response => { if (isErrorStatus(response.status)) error(response); return response; })
 
         return request;
     };
