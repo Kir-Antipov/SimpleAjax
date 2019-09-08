@@ -58,7 +58,8 @@ const ajax = (function () {
                         responseURL: req.responseURL,
                         responseType: req.responseType,
                         status: req.status,
-                        statusText: req.statusText
+                        statusText: req.statusText,
+                        hasError: isErrorStatus(req.status)
                     };
                     Object.defineProperty(result, "value", {
                         get: function () {
