@@ -44,7 +44,7 @@ const ajax = (function () {
         return url.substring(1);
     }
 
-    function createRequest(url, formData, type) {
+    function createRequest(url, formData, type, headers) {
         return new Promise(function (resolve) {
             type = (type || "GET").toUpperCase();
             let req = new Request();
@@ -78,7 +78,11 @@ const ajax = (function () {
                     });
                     resolve(result);
                 }
-            })
+            });
+
+            if (headers && typeof headers === "object") 
+                for (let key in headers)
+                    req.setRequestHeader(key, headers[key]);
 
             if (type === "GET" || type === "HEAD") {
                 let query = formDataToUrl(formData);
@@ -129,14 +133,15 @@ const ajax = (function () {
             content,
             success,
             error,
-            statusCode
+            statusCode,
+            headers
         } = createOptions([...arguments]);
 
         if (!url)
             throw new Error("URL wasn't specified");
 
         let formData = serializeContent(data || content);
-        let request = createRequest(url, formData, method || type || "GET");
+        let request = createRequest(url, formData, method || type || "GET", headers);
 
         if (statusCode)
             request = request.then(response => {
