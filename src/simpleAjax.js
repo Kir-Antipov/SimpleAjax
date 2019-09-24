@@ -187,10 +187,10 @@ const ajax = (function () {
             });
 
         if (success)
-            request = request.then(response => { if (!isErrorStatus(response.status)) success(response); return response; })
+            request = request.then(response => { if (!response.hasError) success(response); return response; })
 
         if (error)
-            request = request.then(response => { if (isErrorStatus(response.status)) error(response); return response; })
+            request = request.then(response => { if (response.hasError) error(response); return response; })
 
         return request;
     };
