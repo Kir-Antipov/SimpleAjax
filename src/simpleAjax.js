@@ -5,6 +5,16 @@ const ajax = (function () {
     if (!Request)
         throw new Error("XMLHttpRequest is unavailable");
 
+    const defaultSettings = {
+        url: "",
+        type: "GET",
+        content: null,
+        success: null,
+        error: null,
+        statusCode: null,
+        headers: null
+    };
+
     function serializeContent(content) {
         if (!content)
             return new FormData();
@@ -146,7 +156,7 @@ const ajax = (function () {
         };
     }
 
-    return function () {
+    const ajax = function () {
         let {
             url,
             method,
@@ -157,7 +167,10 @@ const ajax = (function () {
             error,
             statusCode,
             headers
-        } = createOptions([...arguments]);
+        } = { 
+            ...ajax.defaultSettings,
+            ...createOptions([...arguments])
+        };
 
         if (!url)
             throw new Error("URL wasn't specified");
@@ -181,5 +194,9 @@ const ajax = (function () {
 
         return request;
     };
+
+    ajax.defaultSettings = defaultSettings;
+
+    return ajax;
 
 })();
