@@ -44,13 +44,34 @@ const ajax = (function () {
         return url.substring(1);
     }
 
+    function parseHeaders(rawHeaders) {
+        let headers = (rawHeaders || "")
+            .split('\r\n')
+            .map(line => {
+                let parts = line.split(': ');
+                return parts.length > 1 ? [parts.shift(), parts.join(': ')] : null;
+            })
+            .filter(x => x)
+            .reduce((acc, val) => { acc[val[0]] = val[1]; return acc; }, {});
+
+        headers.contains = function (name) {
+            return this.hasOwnProperty(name.toLowerCase());
+        };
+
+        headers.get = function(name) {
+            return this[name.toLowerCase()];
+        };
+
+        return headers;
+    }
+
     function createRequest(url, formData, type, headers) {
         return new Promise(function (resolve) {
             type = (type || "GET").toUpperCase();
             let req = new Request();
 
             req.addEventListener("readystatechange", function () {
-                if (req.readyState == 4) {
+                if (req.readyState === 4) {
                     let result = {
                         response: req.response,
                         responseXML: req.responseXML,
@@ -59,7 +80,8 @@ const ajax = (function () {
                         responseType: req.responseType,
                         status: req.status,
                         statusText: req.statusText,
-                        hasError: isErrorStatus(req.status)
+                        hasError: isErrorStatus(req.status),
+                        headers: parseHeaders(req.getAllResponseHeaders())
                     };
                     Object.defineProperty(result, "value", {
                         get: function () {
