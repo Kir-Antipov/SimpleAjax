@@ -75,6 +75,12 @@ const ajax = (function () {
         return headers;
     }
 
+    function installHeaders(request, headers) {
+        if (headers && typeof headers === "object") 
+            for (let key in headers)
+                request.setRequestHeader(key, headers[key]);
+    }
+
     function createRequest(url, formData, type, headers) {
         return new Promise(function (resolve) {
             type = (type || "GET").toUpperCase();
@@ -112,16 +118,14 @@ const ajax = (function () {
                 }
             });
 
-            if (headers && typeof headers === "object") 
-                for (let key in headers)
-                    req.setRequestHeader(key, headers[key]);
-
             if (type === "GET" || type === "HEAD") {
                 let query = formDataToUrl(formData);
                 req.open(type, url + (query ? "?" : "") + query);
+                installHeaders(req, headers);
                 req.send();
             } else {
                 req.open(type, url);
+                installHeaders(req, headers);
                 req.send(formData);
             }
         });
