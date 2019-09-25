@@ -147,14 +147,14 @@ const ajax = (function () {
                 installHeaders(req, headers);
                 if (typeof modifier.beforeSend === "function")
                     modifier.beforeSend(req);
-                    req.send();
-                } else {
-                    req.open(type, url);
-                    installHeaders(req, headers);
-                    if (typeof modifier.beforeSend === "function")
-                        modifier.beforeSend(req);
-                    req.send(formData);
-                }
+                req.send();
+            } else {
+                req.open(type, url);
+                installHeaders(req, headers);
+                if (typeof modifier.beforeSend === "function")
+                    modifier.beforeSend(req);
+                req.send(formData);
+            }
         });
     }
 
