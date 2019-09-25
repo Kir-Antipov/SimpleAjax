@@ -12,7 +12,8 @@ const ajax = (function () {
         success: null,
         error: null,
         statusCode: null,
-        headers: null
+        headers: null,
+        interval: 1000
     };
 
     function serializeContent(content) {
@@ -129,7 +130,7 @@ const ajax = (function () {
                             return this._responseObject;
                         }
                     });
-                    
+
                     resolve(result);
                 }
             });
@@ -215,3 +216,23 @@ const ajax = (function () {
     return ajax;
 
 })();
+
+HTMLFormElement.prototype.addAjax = function(handler, options) {
+
+    options = options || {};
+    let intervalMS = Number(options.interval);
+    intervalMS = isNaN(intervalMS) || intervalMS < 0 ? ajax.defaultSettings.interval : intervalMS;
+
+    let eventHandler = function (e) {
+        this.removeEventListener("submit", eventHandler);
+        setTimeout(() => this.addEventListener("submit", eventHandler), intervalMS);
+        ajax(this, options).then(response => {
+            e.response = response;
+            handler.bind(this)(e);
+        });
+    };
+
+    this.addEventListener("submit", e => e.preventDefault());
+    this.addEventListener("submit", eventHandler);
+
+};
