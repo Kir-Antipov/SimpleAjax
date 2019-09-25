@@ -13,7 +13,10 @@ const ajax = (function () {
         error: null,
         statusCode: null,
         headers: null,
-        interval: 1000
+        interval: 1000,
+        beforeSend: null,
+        beforeReturn: null,
+        modifier: null
     };
 
     function serializeContent(content) {
@@ -87,9 +90,9 @@ const ajax = (function () {
         return isNaN(status) || status >= 400 || status < 100;
     }
 
-    function createRequest(url, formData, type, headers) {
+    function createRequest(url, formData, type, headers, modifier) {
         return new Promise(function (resolve) {
-            type = (type || "GET").toUpperCase();
+            type = type.toUpperCase();
             let req = new Request();
 
             req.addEventListener("readystatechange", function () {
@@ -131,6 +134,9 @@ const ajax = (function () {
                         }
                     });
 
+                    if (typeof modifier.beforeReturn === "function")
+                        modifier.beforeReturn(result, req);
+
                     resolve(result);
                 }
             });
@@ -139,12 +145,16 @@ const ajax = (function () {
                 let query = formDataToUrl(formData);
                 req.open(type, url + (query ? "?" : "") + query);
                 installHeaders(req, headers);
-                req.send();
-            } else {
-                req.open(type, url);
-                installHeaders(req, headers);
-                req.send(formData);
-            }
+                if (typeof modifier.beforeSend === "function")
+                    modifier.beforeSend(req);
+                    req.send();
+                } else {
+                    req.open(type, url);
+                    installHeaders(req, headers);
+                    if (typeof modifier.beforeSend === "function")
+                        modifier.beforeSend(req);
+                    req.send(formData);
+                }
         });
     }
 
@@ -182,7 +192,10 @@ const ajax = (function () {
             success,
             error,
             statusCode,
-            headers
+            headers,
+            beforeSend,
+            beforeReturn,
+            modifier    
         } = { 
             ...ajax.defaultSettings,
             ...createOptions([...arguments])
@@ -191,8 +204,12 @@ const ajax = (function () {
         if (!url)
             throw new Error("URL wasn't specified");
 
+        modifier = modifier || {};
+        modifier.beforeSend = modifier.beforeSend || beforeSend;
+        modifier.beforeReturn = modifier.beforeReturn || beforeReturn;
+
         let formData = serializeContent(data || content);
-        let request = createRequest(url, formData, method || type || "GET", headers);
+        let request = createRequest(url, formData, method || type || "GET", headers, modifier);
 
         if (statusCode)
             request = request.then(response => {
