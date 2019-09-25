@@ -104,6 +104,16 @@ const ajax = (function () {
                         hasError: isErrorStatus(req.status),
                         headers: parseHeaders(req.getAllResponseHeaders())
                     };
+
+                    if (!result.responseType) {
+                        let contentType = result.headers["content-type"];
+                        if (contentType) {
+                            let parts = contentType.split('/');
+                            contentType = parts[parts.length - 1].split(';')[0];
+                            result.responseType = contentType;
+                        }
+                    }
+
                     Object.defineProperty(result, "value", {
                         get: function () {
                             if (this._responseObject === undefined) {
@@ -119,6 +129,7 @@ const ajax = (function () {
                             return this._responseObject;
                         }
                     });
+                    
                     resolve(result);
                 }
             });
