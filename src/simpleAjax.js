@@ -81,6 +81,11 @@ const ajax = (function () {
                 request.setRequestHeader(key, headers[key]);
     }
 
+    function isErrorStatus(status) {
+        status = Number(status);
+        return isNaN(status) || status >= 400 || status < 100;
+    }
+
     function createRequest(url, formData, type, headers) {
         return new Promise(function (resolve) {
             type = (type || "GET").toUpperCase();
@@ -129,11 +134,6 @@ const ajax = (function () {
                 req.send(formData);
             }
         });
-    }
-
-    function isErrorStatus(status) {
-        status = Number(status);
-        return isNaN(status) || status >= 400 || status < 100;
     }
 
     function createOptions(args) {
