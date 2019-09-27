@@ -98,3 +98,21 @@ console.log(response.value);
     });
 </script>
 ```
+
+## Install
+
+Via [npm](https://www.npmjs.com/package/simple-ajax-vanilla):
+
+```cmd
+npm i simple-ajax-vanilla
+```
+
+Via [JSDelivr](https://www.jsdelivr.com/package/npm/simple-ajax-vanilla):
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/simple-ajax-vanilla/src/simpleAjax.min.js"></script>
+```
+
+Manually:
+
+Simply download `simpleAjax.min.js` from the [latest release](https://github.com/Kir-Antipov/SimpleAjax/releases/latest) and add it to your project
