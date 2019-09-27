@@ -1,0 +1,25 @@
+{
+  "name": "simple-ajax-vanilla",
+  "version": "4.0.0",
+  "description": "Vanilla JavaScript library, which designed to make simple ajax-requests",
+  "main": "./src/simpleAjax.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kir-Antipov/SimpleAjax"
+  },
+  "keywords": [    
+    "vanilla-javascript",
+    "vanilla-js",
+    "ajax",
+    "ajax-library"
+  ],
+  "author": {
+    "name": "Kir_Antipov",
+    "url": "https://github.com/Kir-Antipov"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Kir-Antipov/SimpleAjax/issues"
+  },
+  "homepage": "https://github.com/Kir-Antipov/SimpleAjax"
+}
