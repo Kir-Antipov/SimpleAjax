@@ -14,6 +14,7 @@ const ajax = (function () {
         statusCode: null,
         headers: null,
         interval: 1000,
+        confirmation: () => true,
         beforeSend: null,
         beforeReturn: null,
         modifier: null
@@ -237,15 +238,21 @@ const ajax = (function () {
 HTMLFormElement.prototype.addAjax = function(handler, options) {
 
     options = options || {};
+    let confirmation = options.confirmation;
+    confirmation = typeof confirmation === "function" ? confirmation : ajax.defaultSettings.confirmation;
     let intervalMS = Number(options.interval);
     intervalMS = isNaN(intervalMS) || intervalMS < 0 ? ajax.defaultSettings.interval : intervalMS;
 
     let eventHandler = function (e) {
-        this.removeEventListener("submit", eventHandler);
-        setTimeout(() => this.addEventListener("submit", eventHandler), intervalMS);
-        ajax(this, options).then(response => {
-            e.response = response;
-            handler.bind(this)(e);
+        Promise.resolve(confirmation).then(confirmed => {
+            if (confirmed !== false) {
+                this.removeEventListener("submit", eventHandler);
+                setTimeout(() => this.addEventListener("submit", eventHandler), intervalMS);
+                ajax(this, options).then(response => {
+                    e.response = response;
+                    handler.bind(this)(e);
+                });
+            }
         });
     };
 
