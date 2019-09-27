@@ -274,7 +274,7 @@ HTMLFormElement.prototype.addAjax = function(handler, options) {
     intervalMS = isNaN(intervalMS) || intervalMS < 0 ? ajax.defaultSettings.interval : intervalMS;
 
     let eventHandler = function (e) {
-        Promise.resolve(confirmation).then(confirmed => {
+        Promise.resolve(confirmation.bind(this)()).then(confirmed => {
             if (confirmed !== false) {
                 this.removeEventListener("submit", eventHandler);
                 setTimeout(() => this.addEventListener("submit", eventHandler), intervalMS);
