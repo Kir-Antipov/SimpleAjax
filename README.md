@@ -40,10 +40,10 @@ ajax(options);
 ## AjaxResult
 
  - `response`
- - `responseXML` <sub><i>(document)</i></sub> - `Document` containing the response to the request, or null if the request was unsuccessful, has not yet been sent, or cannot be parsed as XML or HTML
- - `responseText` <sub><i>(string)</i></sub> - `DOMString` that contains the response to the request as text
- - `responseURL` <sub><i>(string)</i></sub> - serialized `URL` of the response or the empty string if the URL is null
- - `responseType` <sub><i>(string)</i></sub> - value that defines the response type
+ - `document` <sub><i>(document)</i></sub> - `Document` containing the response to the request, or null if the request was unsuccessful, has not yet been sent, or cannot be parsed as XML or HTML
+ - `text` <sub><i>(string)</i></sub> - `DOMString` that contains the response to the request as text
+ - `url` <sub><i>(string)</i></sub> - serialized `URL` of the response or the empty string if the URL is null
+ - `type` <sub><i>(string)</i></sub> - value that defines the response type
  - `status` <sub><i>(number)</i></sub> - unsigned short with the status of the response of the request
  - `statusText` <sub><i>(string)</i></sub> - `DOMString` containing the response string returned by the HTTP server
  - `hasError` <sub><i>(boolean)</i></sub> - `true` if server returned an error code
@@ -86,6 +86,15 @@ console.log(response.value);
 <script>
     document.querySelector("form").addAjax(function ({ response }) {
         this["version"].value = response.value.version;
+    },
+    {
+        // Pre-submit handler
+        // If this function will return false,
+        // request processing will be canceled
+        confirmation: () => confirm("Are you shure?"),
+
+        // The time (in ms) at which repeated requests are blocked
+        interval: 500
     });
 </script>
 ```
