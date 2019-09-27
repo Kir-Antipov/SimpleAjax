@@ -1,3 +1,94 @@
+class AjaxResult {
+
+    constructor(req) {
+        if (!req || req.readyState !== 4)
+            throw new Error("Request has no result");
+
+        this.request = req;
+        this.response = req.response;
+        this.url = req.responseURL;
+        this.status = req.status;
+        this.statusText = req.statusText;
+        this.hasError = !(req.status >= 100 && req.status < 400);
+    }
+
+    get document() {
+        return this._get("document", () => {
+            let doc = this.request.responseXML;
+            
+            if (!doc) {
+                let contentType = this.headers["content-type"];
+                if (contentType && (contentType.includes("xml") || contentType.includes("html")))
+                    doc = new DOMParser().parseFromString(this.text, contentType.split(';')[0]);
+            }
+
+            return doc;
+        });
+    }
+
+    get text() {
+        return this._get("text", () => this.request.responseText || (this.response || "").toString());
+    }
+
+    get headers() {
+        return this._get("headers", () => {
+            let rawHeaders = this.request.getAllResponseHeaders();
+
+            let result = (rawHeaders || "")
+            .split('\r\n')
+            .map(line => {
+                let parts = line.split(': ');
+                return parts.length > 1 ? [parts.shift(), parts.join(': ')] : null;
+            })
+            .filter(x => x)
+            .reduce((acc, val) => { acc[val[0]] = val[1]; return acc; }, {});
+
+            result.contains = function (name) {
+                return this.hasOwnProperty(name.toLowerCase());
+            };
+
+            result.get = function(name) {
+                return this[name.toLowerCase()];
+            };
+
+            return result;
+        });
+    }
+    
+    get type() {
+        return this._get("type", () => { 
+            let type = this.request.responseType;
+
+            if (!type) {
+                type = this.headers["content-type"];
+                if (type) {
+                    let parts = type.split('/');
+                    type = parts[parts.length - 1].split(';')[0];
+                }
+            }
+            
+            return type;
+        });
+    }
+
+    get value() {
+        return this._get("value", () => JSON.parse(this.text));
+    }
+
+    _get(name, init) {
+        let cacheName = `_${name}`;
+        if (this[cacheName] === undefined) {
+            try {
+                this[cacheName] = init();
+            } catch (e) {
+                this[cacheName] = null;
+            }
+        }
+        return this[cacheName];
+    }
+
+}
+
 const ajax = (function () {
 
     const Request = XMLHttpRequest;
@@ -50,7 +141,7 @@ const ajax = (function () {
         for (let key of formData.keys()) {
             let encodedKey = encodeURIComponent(key);
             let values = formData.getAll(key);
-            if (values.length == 1)
+            if (values.length === 1)
                 url += `&${encodedKey}=${encodeURIComponent(values[0])}`;
             else
                 for (let i = 0; i < values.length; ++i)
@@ -59,36 +150,10 @@ const ajax = (function () {
         return url.substring(1);
     }
 
-    function parseHeaders(rawHeaders) {
-        let headers = (rawHeaders || "")
-            .split('\r\n')
-            .map(line => {
-                let parts = line.split(': ');
-                return parts.length > 1 ? [parts.shift(), parts.join(': ')] : null;
-            })
-            .filter(x => x)
-            .reduce((acc, val) => { acc[val[0]] = val[1]; return acc; }, {});
-
-        headers.contains = function (name) {
-            return this.hasOwnProperty(name.toLowerCase());
-        };
-
-        headers.get = function(name) {
-            return this[name.toLowerCase()];
-        };
-
-        return headers;
-    }
-
     function installHeaders(request, headers) {
         if (headers && typeof headers === "object") 
             for (let key in headers)
                 request.setRequestHeader(key, headers[key]);
-    }
-
-    function isErrorStatus(status) {
-        status = Number(status);
-        return isNaN(status) || status >= 400 || status < 100;
     }
 
     function createRequest(url, formData, type, headers, modifier) {
@@ -98,42 +163,7 @@ const ajax = (function () {
 
             req.addEventListener("readystatechange", function () {
                 if (req.readyState === 4) {
-                    let result = {
-                        response: req.response,
-                        responseXML: req.responseXML,
-                        responseText: req.responseText,
-                        responseURL: req.responseURL,
-                        responseType: req.responseType,
-                        status: req.status,
-                        statusText: req.statusText,
-                        hasError: isErrorStatus(req.status),
-                        headers: parseHeaders(req.getAllResponseHeaders())
-                    };
-
-                    if (!result.responseType) {
-                        let contentType = result.headers["content-type"];
-                        if (contentType) {
-                            let parts = contentType.split('/');
-                            contentType = parts[parts.length - 1].split(';')[0];
-                            result.responseType = contentType;
-                        }
-                    }
-
-                    Object.defineProperty(result, "value", {
-                        get: function () {
-                            if (this._responseObject === undefined) {
-                                if ((this.responseType || "text") === "text" || this.responseType === "json")
-                                    try {
-                                        this._responseObject = JSON.parse(this.response);
-                                    } catch {
-                                        this._responseObject = null;
-                                    }
-                                else
-                                    this._responseObject = null;
-                            }
-                            return this._responseObject;
-                        }
-                    });
+                    let result = new AjaxResult(req);
 
                     if (typeof modifier.beforeReturn === "function")
                         modifier.beforeReturn(result, req);
