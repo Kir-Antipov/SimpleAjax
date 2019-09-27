@@ -40,7 +40,8 @@ ajax(options);
 ## AjaxResult
 
  - `response`
- - `document` <sub><i>(document)</i></sub> - `Document` containing the response to the request, or null if the request was unsuccessful, has not yet been sent, or cannot be parsed as XML or HTML
+ - `value` <sub><i>(object)</i></sub> - `Object` containing the response to the request, or null if the request was unsuccessful or it can't be parsed as JSON
+ - `document` <sub><i>(document)</i></sub> - `Document` containing the response to the request, or null if the request was unsuccessful or it can't be parsed as XML or HTML
  - `text` <sub><i>(string)</i></sub> - `DOMString` that contains the response to the request as text
  - `url` <sub><i>(string)</i></sub> - serialized `URL` of the response or the empty string if the URL is null
  - `type` <sub><i>(string)</i></sub> - value that defines the response type
