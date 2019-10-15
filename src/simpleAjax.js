@@ -266,19 +266,29 @@ const ajax = (function () {
 })();
 
 HTMLFormElement.prototype.addAjax = function(handler, options) {
-
     options = options || {};
     let confirmation = options.confirmation;
     confirmation = typeof confirmation === "function" ? confirmation : ajax.defaultSettings.confirmation;
     let intervalMS = Number(options.interval);
     intervalMS = isNaN(intervalMS) || intervalMS < 0 ? ajax.defaultSettings.interval : intervalMS;
+    
+    let locked = false;
+    let eventHandler;
+    let reload = () => {
+        if (locked)
+            locked = false;
+        else
+            this.addEventListener("submit", eventHandler);
+    };
 
-    let eventHandler = function (e) {
+    eventHandler = function (e) {
         Promise.resolve(confirmation.bind(this)()).then(confirmed => {
             if (confirmed !== false) {
                 this.removeEventListener("submit", eventHandler);
-                setTimeout(() => this.addEventListener("submit", eventHandler), intervalMS);
+                locked = true;
+                setTimeout(reload, intervalMS);
                 ajax(this, options).then(response => {
+                    reload();
                     e.response = response;
                     handler.bind(this)(e);
                 });
@@ -288,5 +298,4 @@ HTMLFormElement.prototype.addAjax = function(handler, options) {
 
     this.addEventListener("submit", e => e.preventDefault());
     this.addEventListener("submit", eventHandler);
-
 };
