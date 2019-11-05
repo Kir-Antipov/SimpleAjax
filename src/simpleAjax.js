@@ -161,6 +161,9 @@ const ajax = (function () {
             type = type.toUpperCase();
             let req = new Request();
 
+            if (typeof modifier.onProgress === "function")
+                req.addEventListener("progress", modifier.onProgress);
+
             req.addEventListener("readystatechange", function () {
                 if (req.readyState === 4) {
                     let result = new AjaxResult(req);
@@ -224,6 +227,7 @@ const ajax = (function () {
             error,
             statusCode,
             headers,
+            onProgress,
             beforeSend,
             beforeReturn,
             modifier    
@@ -236,6 +240,7 @@ const ajax = (function () {
             throw new Error("URL wasn't specified");
 
         modifier = modifier || {};
+        modifier.onProgress = modifier.onProgress || onProgress;
         modifier.beforeSend = modifier.beforeSend || beforeSend;
         modifier.beforeReturn = modifier.beforeReturn || beforeReturn;
 
