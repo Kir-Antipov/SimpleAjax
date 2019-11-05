@@ -164,6 +164,9 @@ const ajax = (function () {
             if (typeof modifier.onProgress === "function")
                 req.addEventListener("progress", modifier.onProgress);
 
+            if (req.upload && typeof modifier.onUploadProgress === "function")
+                req.upload.addEventListener("progress", modifier.onUploadProgress);
+
             req.addEventListener("readystatechange", function () {
                 if (req.readyState === 4) {
                     let result = new AjaxResult(req);
@@ -228,6 +231,7 @@ const ajax = (function () {
             statusCode,
             headers,
             onProgress,
+            onUploadProgress,
             beforeSend,
             beforeReturn,
             modifier    
@@ -241,6 +245,7 @@ const ajax = (function () {
 
         modifier = modifier || {};
         modifier.onProgress = modifier.onProgress || onProgress;
+        modifier.onUploadProgress = modifier.onUploadProgress || onUploadProgress;
         modifier.beforeSend = modifier.beforeSend || beforeSend;
         modifier.beforeReturn = modifier.beforeReturn || beforeReturn;
 
