@@ -1,6 +1,6 @@
 {
   "name": "simple-ajax-vanilla",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Vanilla JavaScript library, which designed to make simple ajax-requests",
   "main": "./src/simpleAjax.js",
   "repository": {
