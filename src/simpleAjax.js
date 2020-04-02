@@ -91,7 +91,7 @@ class AjaxResult {
 
 const ajax = (function () {
 
-    const Request = typeof XMLHttpRequest === "undefined" ? require("xmlhttprequest").XMLHttpRequest : XMLHttpRequest;
+    const Request = XMLHttpRequest;
 
     if (!Request)
         throw new Error("XMLHttpRequest is unavailable");
